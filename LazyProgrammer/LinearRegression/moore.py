@@ -1,27 +1,35 @@
 import numpy as np
-import pandas as pd
 import matplotlib.pyplot as plt
 import re
 
-p = re.compile('(\d\d\d\d)')
+non_decimal = re.compile('[^\d]+')
 
-def year_to_numeric(year):
-    return np.float(year)
+X = []
+Y = []
 
-def value_to_numeric(value):
-    return np.float(value.replace(',', ''))
+for line in open("moore.csv"):
+    s = line.split('\t')
 
-df = pd.read_csv("moore.csv", header=None, sep='\t')
-df[1] = df[1].apply(value_to_numeric)
-df[2] = df[2].apply(year_to_numeric)
+    x = int(non_decimal.sub('', s[2].split('[')[0]))
+    y = int(non_decimal.sub('', s[1].split('[')[0]))
 
-X = df[2].values
-Y = df[1].values
+    X.append(x)
+    Y.append(y)
+
+X = np.array(X)
+Y = np.array(Y)
+
+plt.scatter(X, Y)
+plt.show()
+
+Y = np.log(Y)
+
+plt.scatter(X, Y)
+plt.show()
 
 denominator = X.dot(X) - X.mean() * X.sum()
 a = (X.dot(Y) - Y.mean() * X.sum()) / denominator
 b = (Y.mean() * X.dot(X) - X.mean() * X.dot(Y)) / denominator
-
 
 Yhat = a * X + b
 
@@ -30,9 +38,23 @@ v2 = Y - Y.mean()
 
 R2 = 1 - v1.dot(v1)/v2.dot(v2)
 
-print("R2 " + str(R2))
+print("a " + str(a))
+print("b " + str(b))
+print("r - square " + str(R2))
 
 
 plt.scatter(X, Y)
 plt.plot(X, Yhat)
 plt.show()
+
+# log(y) = log(a * x + b)
+# y = exp(a * x ) * exp(b)
+# 2 * y = 2 * exp(a * x) * exp(b)
+# 2 * y = exp(ln(2)) * exp(a * x) * exp(b)
+# 2 * Y = exp(a * x + ln(2)) * exp(b)
+
+# exp(a * x2) * exp(b) = exp(a * x1 + ln(2)) * exp(b)
+# a * x2 = a * x1 + ln(2)
+# x2 = x1 + ln(2)/a
+
+print("time to double: ", np.log(2)/a, " years")
