@@ -25,14 +25,10 @@ b = (Y.mean() * X.dot(X) - X.mean() * X.dot(Y)) / denominator
 
 Yhat = a * X + b
 
-RR = Y - Yhat
-RR = np.power(RR, 2)
-RR = RR.dot(RR)
-RT = Y - Y.mean()
-RT = np.power(RT, 2)
-RT = RT.dot(RT)
+v1 = Y - Yhat
+v2 = Y - Y.mean()
 
-R2 = 1 - RR/RT
+R2 = 1 - v1.dot(v1)/v2.dot(v2)
 
 print("R2 " + str(R2))
 
