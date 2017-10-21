@@ -15,35 +15,16 @@ df = pd.read_csv("moore.csv", header=None, sep='\t')
 df[1] = df[1].apply(value_to_numeric)
 df[2] = df[2].apply(year_to_numeric)
 
-x = df[2].values
-y = df[1].values
+X = df[2].values
+Y = df[1].values
 
-xy_ = np.mean(x * y)
-x_y_ = np.mean(x) * np.mean(y)
+denominator = X.dot(X) - X.mean() * X.sum()
+a = (X.dot(Y) - Y.mean() * X.sum()) / denominator
+b = (Y.mean() * X.dot(X) - X.mean() * X.dot(Y)) / denominator
 
-x2 = x * x
-m_x2 = np.mean(x2)
 
-mx = np.mean(x)
-mx_2 = mx**2
+Yhat = a * X + b
 
-d = m_x2 - mx_2
-
-xy = x * y
-m_xy = np.mean(xy)
-
-m_x = np.mean(x)
-m_y = np.mean(y)
-
-m_xm_y = m_x * m_y
-
-a = (m_xy - m_xm_y) / d
-b = (m_y * m_x2 - m_x * m_xy) / d
-
-_min = np.amin(x)
-_max = np.amax(x)
-
-plt.scatter(x, y)
-plt.plot([_min, _max], [a * _min + b, a * _max + b])
-plt.ticklabel_format(useOffset=False)
+plt.scatter(X, Y)
+plt.plot(X, Yhat)
 plt.show()
