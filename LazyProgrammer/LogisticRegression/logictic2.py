@@ -35,11 +35,12 @@ def cross_entropy(T, Y):
     return E
 
 learning_rate = 0.1
-for i in xrange(100):
+for i in xrange(1000):
     if i % 10 == 0:
         print cross_entropy(T, Y)
 
-    w += learning_rate * (T - Y).dot(Xb)
+    w += learning_rate * ((T - Y).dot(Xb)  - 0.01*w)
+#    w += learning_rate * (T - Y).dot(Xb)
     Y = sigmoid(Xb.dot(w))
 
 print "Final w: ", w
