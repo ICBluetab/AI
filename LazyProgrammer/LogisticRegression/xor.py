@@ -21,8 +21,6 @@ ones = np.array([[1]*N]).T
 xy = np.array([X[:,0] * X[:,1]]).T
 Xb = np.array(np.concatenate((ones, xy, X), axis = 1))
 
-print Xb
-
 w = np.random.randn(D+2)
 
 z = Xb.dot(w)
