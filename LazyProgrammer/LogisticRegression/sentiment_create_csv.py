@@ -19,6 +19,7 @@ df = pd.DataFrame(columns = keys + ['T'])
 
 soup = BeautifulSoup(io.open("../../LargeFiles/electronics/negative.review", 'r', encoding='utf-8'), 'lxml')
 for text in [review_text.text for review_text in soup.find_all('review_text')]:
+    text = text.lower()
     df.loc[df.shape[0]] = [0] * words_len + [0]
     for word in text.split():
         if word in keys:
@@ -26,6 +27,7 @@ for text in [review_text.text for review_text in soup.find_all('review_text')]:
 
 soup = BeautifulSoup(io.open("../../LargeFiles/electronics/positive.review", 'r', encoding='utf-8'), 'lxml')
 for text in [review_text.text for review_text in soup.find_all('review_text')]:
+    text = text.lower()
     df.loc[df.shape[0]] = [0] * words_len + [1]
     for word in text.split():
         if word in keys:
