@@ -24,8 +24,6 @@ D = Xtrain.shape[1]
 def sigmoid(z):
     return 1 / (1 + np.exp(-z))
 
-print sigmoid(0)
-
 #-(t.log(y) + (1-t)log(1-y))
 def classification_rate(T, Y):
     return np.mean(T == Y)
@@ -38,25 +36,25 @@ Xb = np.concatenate((ones, Xtrain), axis=1)
 
 w = np.random.randn(D+1)/np.sqrt(D+1)
 
-learning_rate = 0.001
+learning_rate = 0.00000001
 l1 = 0.01
-for i in xrange(5000):
+for i in xrange(120000):
     Yhat = sigmoid(Xb.dot(w))
     if i % 100 == 0:
-        print "cross_entropy ", cross_entropy(Ytrain, np.abs(Yhat))
+        print "cross_entropy ", cross_entropy(Ytrain, Yhat)
     w = w - learning_rate * (Xb.T.dot(Yhat - Ytrain) + l1 * np.sign(w))
 
-print "clasisification_rate ", classification_rate(Ytrain, np.round(Yhat))
+print "classification_rate ", classification_rate(Ytrain, np.round(Yhat))
 print "W : " , w
 
 print "Prediction"
 
-#N = Xtest.shape[0]
-#D = Xtest.shape[1]
+N = Xtest.shape[0]
+D = Xtest.shape[1]
 
-#ones = np.array([[1]*N]).T
-#Xb = np.concatenate((ones, Xtest), axis=1)
+ones = np.array([[1]*N]).T
+Xb = np.concatenate((ones, Xtest), axis=1)
 
-#P = sigmoid(Xb.dot(w))
-#print "cross_entropy ", cross_entropy(Ytest, P)
-#print "clasisification_rate ", classification_rate(Ytest, np.round(P))
+P = sigmoid(Xb.dot(w))
+print "cross_entropy ", cross_entropy(Ytest, P)
+print "clasisification_rate ", classification_rate(Ytest, np.round(P))

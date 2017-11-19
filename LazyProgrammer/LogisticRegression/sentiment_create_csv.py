@@ -32,4 +32,4 @@ for text in [review_text.text for review_text in soup.find_all('review_text')]:
             df.loc[df.shape[0] - 1][word] = words[word]
 
 
-df.to_csv("sentiment_words.csv.out", encoding='utf-8')
+df.to_csv("sentiment_words.csv.out", index=False, encoding='utf-8')
