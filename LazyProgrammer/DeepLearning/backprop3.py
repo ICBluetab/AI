@@ -1,13 +1,26 @@
 import numpy as np
 import matplotlib.pyplot as plt
 
-def forward(X, w0, b0, w1, b1, w2, b2):
+def forward(X, W, b0, w1, b1, w2, b2):
     Z0 = 1 / (1 + np.exp(-X.dot(w0) - b0))
     Z1 = 1 / (1 + np.exp(-Z0.dot(w1) - b1))
     A = Z1.dot(w2) + b2
     expA = np.exp(A)
     Y = expA / expA.sum(axis=1, keepdims=True)
     return Y, Z0, Z1
+
+def forward(X, W, B):
+    Z = [X]
+    # forward
+    for i in xrange(len(W) - 1):
+        # sigmoid
+        Z.append(1 / (1 + np.exp(-Z[-1].dot(W[i]) - B[i])))
+
+    # softmax
+    A = Z[-1].dot(W[-1]) + B[-1]
+    expA = np.exp(A)
+    Y = expA / expA.sum(axis=1, keepdims=True)
+    return Y, Z
 
 def classification_rate(Y, P):
     n_correct = 0
@@ -19,32 +32,22 @@ def classification_rate(Y, P):
 
     return float(n_correct) / n_total
 
+def derivative_W(n, T, Y, Z, W):
+    D = (T - Y)
+    l = len(W) -1
+    while l > n:
+        D = D.dot(W[l].T) * Z[l] * (1 - Z[l])
+        l -= 1
+    return Z[n].T.dot(D)
 
-def derivative_w2(Z1, T, Y):
-    N, K = T.shape
-    M = Z1.shape[1]
-    return Z1.T.dot(T - Y)
+def derivative_B(n, T, Y, Z, W):
+    D = (T - Y)
+    l = len(W) -1
+    while l > n:
+        D = D.dot(W[l].T) * Z[l] * (1 - Z[l])
+        l -= 1
+    return D.sum(axis=0)
 
-def derivative_b2(T, Y):
-    return (T - Y).sum(axis=0)
-
-def derivative_w1(Z0, Z1, T, Y, w2):
-    dZ1 = (T - Y).dot(w2.T) * Z1 * (1 - Z1)
-    return Z0.T.dot(dZ1)
-
-def derivative_b1(Z1, T, Y, w2):
-    dZ1 = (T - Y).dot(w2.T) * Z1 * (1 - Z1)
-    return dZ1.sum(axis=0)
-
-def derivative_w0(X, Z0, Z1, T, Y, w1, w2):
-    dZ1 = (T - Y).dot(w2.T) * Z1 * (1 - Z1)
-    dZ0 = dZ1.dot(w1.T) * Z0 * (1 - Z0)
-    return X.T.dot(dZ0)
-
-def derivative_b0(Z0, Z1, T, Y, w1, w2):
-    dZ1 = (T - Y).dot(w2.T) * Z1 * (1 - Z1)
-    dZ0 = dZ1.dot(w1.T) * Z0 * (1 - Z0)
-    return dZ0.sum(axis=0)
 
 def cost(T, Y):
     tot = T * np.log(Y)
@@ -79,24 +82,24 @@ def main():
     w2 = np.random.randn(M, K)
     b2 = np.random.randn(K)
 
+    W = [w0, w1, w2]
+    B = [b0, b1, b2]
+
     learning_rate = 10e-7
     costs = []
 
-    for epoch in xrange(1000):
-        output, Z0, Z1 = forward(X, w0, b0, w1, b1, w2, b2)
+    for epoch in xrange(100000):
+        Y_given_X, Z = forward(X, W, B)
         if epoch % 100 == 0:
-            c = cost(T, output)
-            P = np.argmax(output, axis=1)
+            c = cost(T, Y_given_X)
+            P = np.argmax(Y_given_X, axis=1)
             r = classification_rate(Y, P)
             print "costs: ", c, "classification_rate: ", r
             costs.append(c)
 
-        w2 += learning_rate * derivative_w2(Z1, T, output)
-        b2 += learning_rate * derivative_b2(T, output)
-        w1 += learning_rate * derivative_w1(Z0, Z1, T, output, w2)
-        b1 += learning_rate * derivative_b1(Z1, T, output, w2)
-        w0 += learning_rate * derivative_w0(X, Z0, Z1, T, output, w1, w2)
-        b0 += learning_rate * derivative_b0(Z0, Z1, T, output, w1, w2)
+        for i in reversed(xrange(len(W))):
+            W[i] += learning_rate * derivative_W(i, T, Y_given_X, Z, W)
+            B[i] += learning_rate * derivative_B(i, T, Y_given_X, Z, W)
 
     plt.plot(costs)
     plt.show()
