@@ -1,0 +1,93 @@
+<html><head>
+<title>ann_train.py</title>
+<meta name="Generator" content="htmlizer/[Twisted, version 16.6.0]" />
+<link rel="alternate" href="ann_train.py" type="text/x-python" />
+
+</head>
+<body>
+<pre><span class="py-src-keyword">import</span> <span class="py-src-variable">numpy</span> <span class="py-src-keyword">as</span> <span class="py-src-variable">np</span>
+<span class="py-src-keyword">import</span> <span class="py-src-variable">matplotlib</span>.<span class="py-src-variable">pyplot</span> <span class="py-src-keyword">as</span> <span class="py-src-variable">plt</span>
+
+<span class="py-src-keyword">from</span> <span class="py-src-variable">sklearn</span>.<span class="py-src-variable">utils</span> <span class="py-src-keyword">import</span> <span class="py-src-variable">shuffle</span>
+<span class="py-src-keyword">from</span> <span class="py-src-variable">process</span> <span class="py-src-keyword">import</span> <span class="py-src-variable">get_data</span>
+
+<span class="py-src-keyword">def</span> <span class="py-src-identifier">y2indicator</span>(<span class="py-src-parameter">y</span>, <span class="py-src-parameter">K</span>):
+    <span class="py-src-variable">N</span> = <span class="py-src-variable">len</span>(<span class="py-src-variable">y</span>)
+    <span class="py-src-variable">ind</span> = <span class="py-src-variable">np</span>.<span class="py-src-variable">zeros</span>((<span class="py-src-variable">N</span>, <span class="py-src-variable">K</span>))
+    <span class="py-src-keyword">for</span> <span class="py-src-variable">i</span> <span class="py-src-keyword">in</span> <span class="py-src-variable">xrange</span>(<span class="py-src-variable">N</span>):
+        <span class="py-src-variable">ind</span>[<span class="py-src-variable">i</span>, <span class="py-src-variable">y</span>[<span class="py-src-variable">i</span>]] = <span class="py-src-number">1</span>
+    <span class="py-src-keyword">return</span> <span class="py-src-variable">ind</span>
+
+
+<span class="py-src-variable">X</span>, <span class="py-src-variable">Y</span> = <span class="py-src-variable">get_data</span>()
+<span class="py-src-variable">X</span>, <span class="py-src-variable">Y</span> = <span class="py-src-variable">shuffle</span>(<span class="py-src-variable">X</span>, <span class="py-src-variable">Y</span>)
+
+<span class="py-src-variable">Y</span> = <span class="py-src-variable">Y</span>.<span class="py-src-variable">astype</span>(<span class="py-src-variable">np</span>.<span class="py-src-variable">int32</span>)
+
+<span class="py-src-variable">M</span> = <span class="py-src-number">5</span>
+<span class="py-src-variable">D</span> = <span class="py-src-variable">X</span>.<span class="py-src-variable">shape</span>[<span class="py-src-number">1</span>]
+<span class="py-src-variable">K</span> = <span class="py-src-variable">len</span>(<span class="py-src-variable">set</span>(<span class="py-src-variable">Y</span>))
+
+<span class="py-src-variable">Xtrain</span> = <span class="py-src-variable">X</span>[:-<span class="py-src-number">100</span>]
+<span class="py-src-variable">Ytrain</span> = <span class="py-src-variable">Y</span>[:-<span class="py-src-number">100</span>]
+<span class="py-src-variable">Ytrain_ind</span> = <span class="py-src-variable">y2indicator</span>(<span class="py-src-variable">Ytrain</span>, <span class="py-src-variable">K</span>)
+
+<span class="py-src-variable">Xtest</span> = <span class="py-src-variable">X</span>[-<span class="py-src-number">100</span>:]
+<span class="py-src-variable">Ytest</span> = <span class="py-src-variable">Y</span>[-<span class="py-src-number">100</span>:]
+<span class="py-src-variable">Ytest_ind</span> = <span class="py-src-variable">y2indicator</span>(<span class="py-src-variable">Ytest</span>, <span class="py-src-variable">K</span>)
+
+<span class="py-src-variable">W1</span> = <span class="py-src-variable">np</span>.<span class="py-src-variable">random</span>.<span class="py-src-variable">randn</span>(<span class="py-src-variable">D</span>, <span class="py-src-variable">M</span>)
+<span class="py-src-variable">b1</span> = <span class="py-src-variable">np</span>.<span class="py-src-variable">zeros</span>(<span class="py-src-variable">M</span>)
+
+<span class="py-src-variable">W2</span> = <span class="py-src-variable">np</span>.<span class="py-src-variable">random</span>.<span class="py-src-variable">randn</span>(<span class="py-src-variable">M</span>, <span class="py-src-variable">K</span>)
+<span class="py-src-variable">b2</span> = <span class="py-src-variable">np</span>.<span class="py-src-variable">zeros</span>(<span class="py-src-variable">K</span>)
+
+<span class="py-src-keyword">def</span> <span class="py-src-identifier">softmax</span>(<span class="py-src-parameter">a</span>):
+    <span class="py-src-variable">expA</span> =  <span class="py-src-variable">np</span>.<span class="py-src-variable">exp</span>(<span class="py-src-variable">a</span>)
+    <span class="py-src-keyword">return</span> <span class="py-src-variable">expA</span> / <span class="py-src-variable">expA</span>.<span class="py-src-variable">sum</span>(<span class="py-src-variable">axis</span>=<span class="py-src-number">1</span>, <span class="py-src-variable">keepdims</span>=<span class="py-src-variable">True</span>)
+
+<span class="py-src-keyword">def</span> <span class="py-src-identifier">forward</span>(<span class="py-src-parameter">X</span>, <span class="py-src-parameter">W1</span>, <span class="py-src-parameter">b1</span>, <span class="py-src-parameter">W2</span>, <span class="py-src-parameter">b2</span>):
+    <span class="py-src-variable">Z</span> = <span class="py-src-variable">np</span>.<span class="py-src-variable">tanh</span>(<span class="py-src-variable">X</span>.<span class="py-src-variable">dot</span>(<span class="py-src-variable">W1</span>) + <span class="py-src-variable">b1</span>)
+    <span class="py-src-keyword">return</span> <span class="py-src-variable">softax</span>(<span class="py-src-variable">Z</span>.<span class="py-src-variable">dot</span>(<span class="py-src-variable">W2</span>) + <span class="py-src-variable">b2</span>), <span class="py-src-variable">Z</span>
+
+
+<span class="py-src-keyword">def</span> <span class="py-src-identifier">predict</span>(<span class="py-src-parameter">P_Y_given_X</span>):
+    <span class="py-src-keyword">return</span> <span class="py-src-variable">np</span>.<span class="py-src-variable">argmax</span>(<span class="py-src-variable">P_Y_given_X</span>, <span class="py-src-variable">axis</span>=<span class="py-src-number">1</span>)
+
+<span class="py-src-keyword">def</span> <span class="py-src-identifier">classification_rate</span>(<span class="py-src-parameter">Y</span>, <span class="py-src-parameter">P</span>):
+    <span class="py-src-keyword">return</span> <span class="py-src-variable">np</span>.<span class="py-src-variable">mean</span>(<span class="py-src-variable">Y</span> == <span class="py-src-variable">P</span>)
+
+<span class="py-src-keyword">def</span> <span class="py-src-identifier">cross_entropy</span>(<span class="py-src-parameter">T</span>, <span class="py-src-parameter">py</span>):
+    <span class="py-src-keyword">return</span> -<span class="py-src-variable">np</span>.<span class="py-src-variable">mean</span>(<span class="py-src-variable">T</span>*<span class="py-src-variable">np</span>.<span class="py-src-variable">log</span>(<span class="py-src-variable">py</span>))
+
+<span class="py-src-variable">train_costs</span> = []
+<span class="py-src-variable">test_costs</span> = []
+<span class="py-src-variable">learning_rate</span> = <span class="py-src-number">0.001</span>
+<span class="py-src-keyword">for</span> <span class="py-src-variable">i</span> <span class="py-src-keyword">in</span> <span class="py-src-variable">xrange</span>(<span class="py-src-number">10000</span>):
+    <span class="py-src-variable">pYtrain</span>, <span class="py-src-variable">Ztrain</span> = <span class="py-src-variable">forward</span>(<span class="py-src-variable">Xtrain</span>, <span class="py-src-variable">W1</span>, <span class="py-src-variable">b1</span>, <span class="py-src-variable">W2</span>, <span class="py-src-variable">b2</span>)
+    <span class="py-src-variable">pYtest</span>, <span class="py-src-variable">Ztest</span>   = <span class="py-src-variable">forward</span>(<span class="py-src-variable">Xtest</span>, <span class="py-src-variable">W1</span>, <span class="py-src-variable">b1</span>, <span class="py-src-variable">W2</span>, <span class="py-src-variable">b2</span>
+
+    <span class="py-src-variable">ctrain</span> = <span class="py-src-variable">cross_entropy</span>(<span class="py-src-variable">Ytrain_ind</span>, <span class="py-src-variable">pYtrain</span>)
+    <span class="py-src-variable">ctest</span> = <span class="py-src-variable">cross_entropy</span>(<span class="py-src-variable">Ytest_ind</span>, <span class="py-src-variable">pYtest</span>)
+    <span class="py-src-variable">train_costs</span>.<span class="py-src-variable">append</span>(<span class="py-src-variable">ctrain</span>)
+    <span class="py-src-variable">test_costs</span>.<span class="py-src-variable">append</span>(<span class="py-src-variable">ctest</span>)
+
+    <span class="py-src-variable">W2</span>  -= <span class="py-src-variable">learning_rate</span> * <span class="py-src-variable">Ztrain</span>.<span class="py-src-variable">T</span>.<span class="py-src-variable">dot</span>(<span class="py-src-variable">pYtrain</span> - <span class="py-src-variable">Ytrain_ind</span>)
+    <span class="py-src-variable">b2</span> -=  <span class="py-src-variable">learning_rate</span> * (<span class="py-src-variable">pYtrain</span> - <span class="py-src-variable">Ytrain_ind</span>).<span class="py-src-variable">sum</span>()
+    <span class="py-src-variable">dZ</span> = (<span class="py-src-variable">pYtrain</span> - <span class="py-src-variable">Ytrain_ind</span>).<span class="py-src-variable">dot</span>(<span class="py-src-variable">W2</span>.<span class="py-src-variable">T</span>) * (<span class="py-src-number">1</span> - <span class="py-src-variable">Ztrain</span>*<span class="py-src-variable">Ztrain</span>)
+    <span class="py-src-variable">W1</span> -= <span class="py-src-variable">learing_rate</span>*<span class="py-src-variable">Xtrain</span>.<span class="py-src-variable">T</span>.<span class="py-src-variable">dot</span>(<span class="py-src-variable">dZ</span>)
+    <span class="py-src-variable">b1</span> -= <span class="py-src-variable">learning_rate</span>*<span class="py-src-variable">dZ</span>.<span class="py-src-variable">sum</span>(<span class="py-src-variable">azis</span>=<span class="py-src-number">0</span>)
+
+    <span class="py-src-keyword">if</span> <span class="py-src-variable">i</span> % <span class="py-src-number">1000</span> == <span class="py-src-number">0</span>:
+        <span class="py-src-keyword">print</span> <span class="py-src-variable">i</span>, <span class="py-src-variable">ctrain</span>, <span class="py-src-variable">ctest</span>
+
+<span class="py-src-keyword">print</span> <span class="py-src-string">"Final train classification_rate: "</span>, <span class="py-src-variable">classification_rate</span>(<span class="py-src-variable">Ytrain</span>, <span class="py-src-variable">predict</span>(<span class="py-src-variable">pYtrain</span>))
+<span class="py-src-keyword">print</span> <span class="py-src-string">"Final test classification_rate: "</span>,  <span class="py-src-variable">classification_rate</span>(<span class="py-src-variable">Ytest</span>, <span class="py-src-variable">predict</span>(<span class="py-src-variable">pYtest</span>))
+
+<span class="py-src-variable">legend1</span>, = <span class="py-src-variable">plt</span>.<span class="py-src-variable">plot</span>(<span class="py-src-variable">train_costs</span>, <span class="py-src-variable">label</span>=<span class="py-src-string">'train costs'</span>)
+<span class="py-src-variable">legend2</span>, = <span class="py-src-variable">plt</span>.<span class="py-src-variable">plot</span>(<span class="py-src-variable">test_costs</span>, <span class="py-src-variable">label</span>=<span class="py-src-string">'tests costs'</span>)
+
+<span class="py-src-variable">plt</span>.<span class="py-src-variable">legend</span>([<span class="py-src-variable">legend1</span>, <span class="py-src-variable">legend2</span>])
+<span class="py-src-variable">plt</span>.<span class="py-src-variable">show</span>()
+</pre>
+</body>

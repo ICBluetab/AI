@@ -20,8 +20,8 @@ X_outer = np.concatenate([[R2 * np.cos(theta)], [R2 * np.sin(theta)]]).T
 X = np.concatenate([X_inner, X_outer])
 y = np.array([0] * (N/2) + [1] * (N/2))
 
-plt.scatter(X[:,0], X[:,1], c=y)
-plt.show()
+# plt.scatter(X[:,0], X[:,1], c=y)
+# plt.show()
 
 X_train, X_test, y_train, y_test = train_test_split(X, y)
 
