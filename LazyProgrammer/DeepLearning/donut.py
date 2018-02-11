@@ -20,12 +20,14 @@ X_outer = np.concatenate([[R2 * np.cos(theta)], [R2 * np.sin(theta)]]).T
 X = np.concatenate([X_inner, X_outer])
 y = np.array([0] * (N/2) + [1] * (N/2))
 
-# plt.scatter(X[:,0], X[:,1], c=y)
-# plt.show()
+plt.scatter(X[:,0], X[:,1], c=y)
+plt.show()
 
 X_train, X_test, y_train, y_test = train_test_split(X, y)
 
-model = NeuralNetwork(hidden_layers=[4, 4, 4])
+model = NeuralNetwork(hidden_layers=[15, 15],
+                      learning_rate = 10e-6,
+                      epochs=10000)
 model.fit(X_train, y_train)
 train_score = model.score(X_train, y_train)
 test_score = model.score(X_test, y_test)

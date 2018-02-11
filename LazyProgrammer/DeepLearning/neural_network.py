@@ -31,15 +31,6 @@ class NeuralNetwork(object):
         ones = np.array([[1]*N]).T
         return np.concatenate((ones, X), axis=1)
 
-    def derivative(self, n, T, Y, Z, W):
-        D = (T - Y)
-        l = len(W) -1
-        while l > n:
-            D = D.dot(W[l].T) * Z[l] * (1 - Z[l])
-            l -= 1
-
-        return Z[n].T.dot(D)
-
     def cost(self, T, y):
         tot = T * np.log(y)
         return tot.sum()
@@ -58,6 +49,15 @@ class NeuralNetwork(object):
         c = self.cost(T, Y_given_X)
         r = self.classification_rate(y, Y_given_X)
         print "costs: ", c, "classification_rate: ", r
+
+    def derivative(self, n, T, Y, Z, W):
+        D = (T - Y)
+        l = len(W) -1
+        while l > n:
+            D = D.dot(W[l].T) * Z[l] * (1 - Z[l])
+            l -= 1
+
+        return Z[n].T.dot(D)
 
     def backprop(self, X, y, T, W):
         for epoch in xrange(self.epochs):
