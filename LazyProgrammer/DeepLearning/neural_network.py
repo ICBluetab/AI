@@ -88,14 +88,13 @@ class NeuralNetwork(object):
         r = self.classification_rate(y, Y_given_X)
         print "costs: ", c, "classification_rate: ", r
 
-    def derivative(self, n, T, Y, Z, W):
-        D = (T - Y)
-        l = len(W) -1
-        while l > n:
-            D = D.dot(W[l].T) * self.activation_d(Z[l])
-            l -= 1
+    def softmax_d(self, T, Y, Z):
+        dz = (T - Y)
+        return Z[-1].T.dot(dz), dz
 
-        return Z[n].T.dot(D)
+    def backprop_d(self, n, T, Y, Z, W, acc):
+        dz = acc.dot(W[n+1].T) * self.activation_d(Z[n+1])
+        return Z[n].T.dot(dz), dz
 
     def backprop(self, X, y, T, W):
         for epoch in xrange(self.epochs):
@@ -103,9 +102,11 @@ class NeuralNetwork(object):
             if epoch % 100 == 0:
                 self.trace(y, T, Y_given_X)
 
-            for i in reversed(xrange(len(W))):
-                W[i] += self.learning_rate * self.derivative(i, T, Y_given_X, Z, W)
-
+            D, acc = self.softmax_d(T, Y_given_X, Z)
+            W[-1] += self.learning_rate * D
+            for i in reversed(xrange(len(W) - 1)):
+                D, acc =  self.backprop_d(i, T, Y_given_X, Z, W, acc)
+                W[i] += self.learning_rate * D
 
     def fit(self, X, y):
         # D: number of features
