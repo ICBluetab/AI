@@ -25,7 +25,7 @@ y = np.array([0] * (N/2) + [1] * (N/2))
 
 X_train, X_test, y_train, y_test = train_test_split(X, y)
 
-model = NeuralNetwork()
+model = NeuralNetwork(hidden_layers=[4, 4, 4])
 model.fit(X_train, y_train)
 train_score = model.score(X_train, y_train)
 test_score = model.score(X_test, y_test)

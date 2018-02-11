@@ -32,22 +32,14 @@ def classification_rate(Y, P):
 
     return float(n_correct) / n_total
 
-def derivative_W(n, T, Y, Z, W):
+def derivative(n, T, Y, Z, W):
     D = (T - Y)
     l = len(W) -1
     while l > n:
         D = D.dot(W[l].T) * Z[l] * (1 - Z[l])
         l -= 1
-    return Z[n].T.dot(D)
 
-def derivative_B(n, T, Y, Z, W):
-    D = (T - Y)
-    l = len(W) -1
-    while l > n:
-        D = D.dot(W[l].T) * Z[l] * (1 - Z[l])
-        l -= 1
-    return D.sum(axis=0)
-
+    return Z[n].T.dot(D), D.sum(axis=0)
 
 def cost(T, Y):
     tot = T * np.log(Y)
@@ -98,8 +90,9 @@ def main():
             costs.append(c)
 
         for i in reversed(xrange(len(W))):
-            W[i] += learning_rate * derivative_W(i, T, Y_given_X, Z, W)
-            B[i] += learning_rate * derivative_B(i, T, Y_given_X, Z, W)
+            dw, db = derivative(i, T, Y_given_X, Z, W)
+            W[i] += learning_rate * dw
+            B[i] += learning_rate * db
 
     plt.plot(costs)
     plt.show()
