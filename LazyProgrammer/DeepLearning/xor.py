@@ -1,60 +1,26 @@
 import numpy as np
 import matplotlib.pyplot as plt
+from neural_network import NeuralNetwork
+from sklearn.model_selection import train_test_split
 
-N = 4
-D = 2
-
-X =  np.array([
-        [0, 0],
-        [0, 1],
-        [1, 0],
-        [1, 1]
-    ])
-
-T = np.array([0, 1, 1, 0])
+X = np.zeros((1000, 2))
+X[:250]     = np.random.random((250, 2)) / 2 + 0.5
+X[250:500]  = np.random.random((250, 2)) / 2
+X[500:750] = np.random.random((250, 2)) / 2 + np.array([[0, 0.5]])
+X[750:1000] = np.random.random((250, 2)) / 2 + np.array([[0.5, 0]])
+y = np.array([0] * 500 + [1] * 500)
 
 
-#plt.scatter(X[:,0], X[:,1], c=T)
-#plt.show()
+plt.scatter(X[:,0], X[:,1], c=y)
+plt.show()
 
-ones = np.array([[1]*N]).T
-xy = np.array([X[:,0] * X[:,1]]).T
-Xb = np.array(np.concatenate((ones, xy, X), axis = 1))
+X_train, X_test, y_train, y_test = train_test_split(X, y)
 
-w = np.random.randn(D+2)
+model = NeuralNetwork(hidden_layers=[10, 10],
+                      learning_rate = 10e-5,
+                      epochs=10000)
+model.fit(X_train, y_train)
+train_score = model.score(X_train, y_train)
+test_score = model.score(X_test, y_test)
 
-z = Xb.dot(w)
-
-def sigmoid(z):
-    return 1 / (1 + np.exp(-z))
-
-Y = sigmoid(z)
-
-#-(t.log(y) + (1-t)log(1-y))
-def cross_entropy(T, Y):
-    E = 0
-    for i in xrange(N):
-        if T[i] == 1:
-            E -= np.log(Y[i])
-        elif T[i] == 0:
-            E -= np.log(1 - Y[i])
-
-    return E
-
-learning_rate = 0.01
-error = []
-for i in xrange(5000):
-    e = cross_entropy(T, Y)
-    error.append(e)
-    if i % 100 == 0:
-        print e
-
-    w += learning_rate * (np.dot((T - Y).T, Xb) - 0.01*w)
-    Y = sigmoid(Xb.dot(w))
-
-
-plt.plot(error)
-plt.title("Cross-entropy")
-
-print "Final w: ", w
-print "Final classification rate: ", (1 - np.abs(T - np.round(Y)).mean())
+print "Traing score: ", train_score, " Test score: ", test_score
