@@ -2,17 +2,47 @@ import numpy as np
 
 class NeuralNetwork(object):
     def __init__(self, hidden_layers=[2], learning_rate = 10e-7,
-                    epochs=10000):
+                       epochs=10000, activation='relu'):
         self.hidden_layers = hidden_layers
         self.learning_rate = learning_rate
         self.epochs = epochs
+
+        if activation == 'sigmoid':
+            self.activation = self.sigmoid
+            self.activation_d = self.sigmoid_d
+        elif activation == 'tanh':
+            self.activation = self.tanh
+            self.activation_d = self.tanh_d
+        else:
+            self.activation = self.relu
+            self.activation_d = self.relu_d
+
+    def sigmoid(self, x, w):
+        return 1 / (1 + np.exp(-x.dot(w)))
+
+    def sigmoid_d(self, z):
+        return (1 - z) * z
+
+    def tanh(self, x, w):
+        t = np.exp(2 * x.dot(w))
+        return (t - 1)/ (t + 1)
+
+    def tanh_d(self, z):
+        return 1 - z * z
+
+    def relu(self, x, w):
+        t = x.dot(w)
+        return t * (t > 0)
+
+    def relu_d(self, z):
+        return z > 0
 
     def forward(self, X, W):
         Z = [X]
         # forward
         for i in xrange(len(W) - 1):
-            # sigmoid
-            Z.append(1 / (1 + np.exp(-Z[-1].dot(W[i]))))
+            # activation
+            Z.append(self.activation(Z[-1], W[i]))
 
         # softmax
         A = Z[-1].dot(W[-1])
@@ -25,6 +55,14 @@ class NeuralNetwork(object):
         for i in xrange(N):
             T[i, y[i]] = 1
         return T
+
+    def rescale(self, X):
+        N, D = X.shape
+        Xr = np.zeros((N, D))
+        for d in xrange(D):
+            Xr[:,d] = (X[:,d] - X[:,d].mean()) / X[:,d].std()
+
+        return Xr
 
     def absorb_bias_term(slef, X):
         N = X.shape[0]
@@ -54,7 +92,7 @@ class NeuralNetwork(object):
         D = (T - Y)
         l = len(W) -1
         while l > n:
-            D = D.dot(W[l].T) * Z[l] * (1 - Z[l])
+            D = D.dot(W[l].T) * self.activation_d(Z[l])
             l -= 1
 
         return Z[n].T.dot(D)
@@ -75,7 +113,8 @@ class NeuralNetwork(object):
         # K number of outputs. From 0 to K -1
         K = np.max(y) + 1
 
-        Xb = self.absorb_bias_term(X)
+        Xr = self.rescale(X)
+        Xb = self.absorb_bias_term(Xr)
 
         self.W = []
         node_distribution = [D + 1] + self.hidden_layers + [K]
@@ -88,7 +127,8 @@ class NeuralNetwork(object):
 
 
     def predict(self, X):
-        Xb = self.absorb_bias_term(X)
+        Xr = self.rescale(X)
+        Xb = self.absorb_bias_term(Xr)
         P, _ = self.forward(Xb, self.W)
         return P
 

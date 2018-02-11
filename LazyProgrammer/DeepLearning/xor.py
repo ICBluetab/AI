@@ -16,9 +16,9 @@ plt.show()
 
 X_train, X_test, y_train, y_test = train_test_split(X, y)
 
-model = NeuralNetwork(hidden_layers=[10, 10],
-                      learning_rate = 10e-5,
-                      epochs=10000)
+model = NeuralNetwork(hidden_layers=[20, 20, 20, 20],
+                      learning_rate = 0.00000005,
+                      epochs=10000, activation='relu')
 model.fit(X_train, y_train)
 train_score = model.score(X_train, y_train)
 test_score = model.score(X_test, y_test)
