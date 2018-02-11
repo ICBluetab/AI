@@ -7,15 +7,15 @@ class NeuralNetwork(object):
         self.learning_rate = learning_rate
         self.epochs = epochs
 
-    def forward(self, X, W, B):
+    def forward(self, X, W):
         Z = [X]
         # forward
         for i in xrange(len(W) - 1):
             # sigmoid
-            Z.append(1 / (1 + np.exp(-Z[-1].dot(W[i]) - B[i])))
+            Z.append(1 / (1 + np.exp(-Z[-1].dot(W[i]))))
 
         # softmax
-        A = Z[-1].dot(W[-1]) + B[-1]
+        A = Z[-1].dot(W[-1])
         expA = np.exp(A)
         Y = expA / expA.sum(axis=1, keepdims=True)
         return Y, Z
@@ -26,14 +26,19 @@ class NeuralNetwork(object):
             T[i, y[i]] = 1
         return T
 
-    def derivative(self, n, T, Y, Z, W, B):
+    def absorb_bias_term(slef, X):
+        N = X.shape[0]
+        ones = np.array([[1]*N]).T
+        return np.concatenate((ones, X), axis=1)
+
+    def derivative(self, n, T, Y, Z, W):
         D = (T - Y)
         l = len(W) -1
         while l > n:
             D = D.dot(W[l].T) * Z[l] * (1 - Z[l])
             l -= 1
 
-        return Z[n].T.dot(D), D.sum(axis=0)
+        return Z[n].T.dot(D)
 
     def cost(self, T, y):
         tot = T * np.log(y)
@@ -54,40 +59,37 @@ class NeuralNetwork(object):
         r = self.classification_rate(y, Y_given_X)
         print "costs: ", c, "classification_rate: ", r
 
-    def backprop(self, X, y, T, W, B):
+    def backprop(self, X, y, T, W):
         for epoch in xrange(self.epochs):
-            Y_given_X, Z = self.forward(X, W, B)
+            Y_given_X, Z = self.forward(X, W)
             if epoch % 100 == 0:
                 self.trace(y, T, Y_given_X)
 
             for i in reversed(xrange(len(W))):
-                dw, db = self.derivative(i, T, Y_given_X, Z, W, B)
-                W[i] += self.learning_rate * dw
-                B[i] += self.learning_rate * db
+                W[i] += self.learning_rate * self.derivative(i, T, Y_given_X, Z, W)
 
 
     def fit(self, X, y):
-        N, D = X.shape # D number of features
-        K = np.max(y) + 1 # K number of outputs. From 0 to K -1
+        # D: number of features
+        N, D = X.shape
+        # K number of outputs. From 0 to K -1
+        K = np.max(y) + 1
 
-        W = []
-        B = []
+        Xb = self.absorb_bias_term(X)
 
-        node_distribution = [D] + self.hidden_layers + [K]
+        self.W = []
+        node_distribution = [D + 1] + self.hidden_layers + [K]
         for i in xrange(len(node_distribution) - 1):
-            W.append(np.random.randn(node_distribution[i],
+            self.W.append(np.random.randn(node_distribution[i],
                                           node_distribution[i + 1]))
-            B.append(np.random.randn(node_distribution[i + 1]))
-
-        self.W = W
-        self.B = B
 
         T = self.one_hot_encoding(y, N, K)
-        self.backprop(X, y, T, W, B)
+        self.backprop(Xb, y, T, self.W)
 
 
     def predict(self, X):
-        P, _ = self.forward(X, self.W, self.B)
+        Xb = self.absorb_bias_term(X)
+        P, _ = self.forward(Xb, self.W)
         return P
 
     def score(self, X, y):
